@@ -1,0 +1,202 @@
+image: node:latest
+
+variables:
+    MYSQL_HOST: localhost
+    MYSQL_USER: test
+    MYSQL_PASSWORD: test
+    MYSQL_DATABASE: test
+
+stages:
+  - build
+  - test
+
+install:
+  stage: build
+  script:
+    - cd server
+    - npm install
+    - cd ../client
+    - npm install
+  artifacts:
+    paths:
+      - server/node_modules
+      - client/node_modules
+
+#typescript:
+ # stage: test
+  #script:
+  #  - cd server
+  #  - ./node_modules/.bin/tsc --noEmit --skipLibCheck
+  #  - cd ../client
+  #  - ./node_modules/.bin/tsc --noEmit --skipLibCheck
+
+test:
+  stage: test
+  script:
+    - apt-get update
+    - apt-get -y upgrade
+    - apt-get -y install default-mysql-server
+    - service mariadb start
+    - mysqladmin create $MYSQL_DATABASE
+    - >
+      echo  "
+      CREATE TABLE Area ( id int NOT NULL AUTO_INCREMENT, name varchar(32) DEFAULT
+      NULL, PRIMARY KEY (id) );
+
+      CREATE TABLE Category ( id int NOT NULL AUTO_INCREMENT, name
+      varchar(32) DEFAULT NULL, PRIMARY KEY (id) ); CREATE TABLE Ingredients ( id int NOT NULL
+      AUTO_INCREMENT, name varchar(64) DEFAULT NULL, PRIMARY KEY (id) );
+      
+      CREATE TABLE Meals (id int NOT NULL AUTO_INCREMENT, name
+      varchar(64) NOT NULL, drink varchar(32) DEFAULT NULL, category int NOT NULL, area int
+      NOT NULL, instructions text NOT NULL, thumb text, youtube text, likes int DEFAULT
+      NULL, PRIMARY KEY (id), KEY category (category), KEY area(area), CONSTRAINT
+      Meals_ibfk_1 FOREIGN KEY (category) REFERENCES Category (id), CONSTRAINT
+      Meals_ibfk_2 FOREIGN KEY (area) REFERENCES Area (id) );
+      
+      
+      CREATE TABLE Measurements (
+      id int NOT NULL AUTO_INCREMENT, abbreviation varchar(32) DEFAULT NULL, singular
+      varchar(32) DEFAULT NULL, plural varchar(32) DEFAULT NULL, PRIMARY KEY (id) );
+      
+      CREATE TABLE Users ( id int NOT NULL AUTO_INCREMENT, username varchar(64) NOT NULL, email
+      varchar(64) DEFAULT NULL, password varchar(64) NOT NULL, admin tinyint(1) NOT NULL,
+      PRIMARY KEY (id) );    
+
+      CREATE TABLE Meal_ingredient_measure ( meal_id int NOT NULL, ingredient int NOT NULL, number int
+      DEFAULT NULL, measurement int DEFAULT NULL, PRIMARY KEY (meal_id,ingredient), KEY
+      Meal_ingredient_measure_ibfk_2 (ingredient), KEY Meal_ingredient_measure_ibfk_3
+      (measurement), CONSTRAINT Meal_ingredient_measure_ibfk_1 FOREIGN KEY (meal_id)
+      REFERENCES Meals (id) ON DELETE CASCADE, CONSTRAINT Meal_ingredient_measure_ibfk_2
+      FOREIGN KEY (ingredient) REFERENCES Ingredients (id) ON DELETE RESTRICT ON UPDATE
+      RESTRICT, CONSTRAINT Meal_ingredient_measure_ibfk_3 FOREIGN KEY (measurement) REFERENCES
+      Measurements (id) ON DELETE RESTRICT ON UPDATE RESTRICT );   
+      
+      CREATE TABLE Likes (
+      user_id int NOT NULL, meal_id int NOT NULL, PRIMARY KEY (user_id,meal_id), KEY
+      meal_id (meal_id), CONSTRAINT Likes_ibfk_1 FOREIGN KEY (user_id) REFERENCES Users
+      (id) ON DELETE CASCADE, CONSTRAINT Likes_ibfk_2 FOREIGN KEY (meal_id) REFERENCES Meals
+      (id) ON DELETE CASCADE );
+
+      INSERT INTO Area VALUES (NULL, 'African');
+      INSERT INTO Area VALUES (NULL, 'American');
+      INSERT INTO Area VALUES (NULL, 'Asian');
+      INSERT INTO Area VALUES (NULL, 'Australian');
+      INSERT INTO Area VALUES (NULL, 'British');
+      INSERT INTO Area VALUES (NULL, 'Canadian');
+      INSERT INTO Area VALUES (NULL, 'Chinese');
+      INSERT INTO Area VALUES (NULL, 'Creole');
+      INSERT INTO Area VALUES (NULL, 'Croatian');
+      INSERT INTO Area VALUES (NULL, 'Danish');
+      INSERT INTO Area VALUES (NULL, 'Dutch');
+      INSERT INTO Area VALUES (NULL, 'European');
+      INSERT INTO Area VALUES (NULL, 'Egyptian');
+      INSERT INTO Area VALUES (NULL, 'French');
+      INSERT INTO Area VALUES (NULL, 'Fusion');
+      INSERT INTO Area VALUES (NULL, 'German');
+      INSERT INTO Area VALUES (NULL, 'Greek');
+      INSERT INTO Area VALUES (NULL, 'Hungarian');
+      INSERT INTO Area VALUES (NULL, 'Hispanic');
+      INSERT INTO Area VALUES (NULL, 'Icelandic');
+      INSERT INTO Area VALUES (NULL, 'Indian');
+      INSERT INTO Area VALUES (NULL, 'Indonesian');
+      INSERT INTO Area VALUES (NULL, 'Irish');
+      INSERT INTO Area VALUES (NULL, 'Italian');
+      INSERT INTO Area VALUES (NULL, 'Jamaican');
+      INSERT INTO Area VALUES (NULL, 'Japanese');
+      INSERT INTO Area VALUES (NULL, 'Kenyan');
+      INSERT INTO Area VALUES (NULL, 'Korean');
+      INSERT INTO Area VALUES (NULL, 'Lebanese');
+      INSERT INTO Area VALUES (NULL, 'Malaysian');
+      INSERT INTO Area VALUES (NULL, 'Mediterranean');
+      INSERT INTO Area VALUES (NULL, 'Mexican');
+      INSERT INTO Area VALUES (NULL, 'Middle Eastern');
+      INSERT INTO Area VALUES (NULL, 'Moroccan');
+      INSERT INTO Area VALUES (NULL, 'Norwegian');
+      INSERT INTO Area VALUES (NULL, 'Persain');
+      INSERT INTO Area VALUES (NULL, 'Polish');
+      INSERT INTO Area VALUES (NULL, 'Portuguese');
+      INSERT INTO Area VALUES (NULL, 'Russian');
+      INSERT INTO Area VALUES (NULL, 'Spanish');
+      INSERT INTO Area VALUES (NULL, 'Sri Lankan');
+      INSERT INTO Area VALUES (NULL, 'Swedish');
+      INSERT INTO Area VALUES (NULL, 'Thai');
+      INSERT INTO Area VALUES (NULL, 'Turkish');
+      INSERT INTO Area VALUES (NULL, 'Vietnamese');
+      INSERT INTO Area VALUES (NULL, 'Unknown');
+      INSERT INTO Area VALUES (NULL, 'Other');
+      INSERT INTO Category VALUES (NULL, 'Breakfast');
+      INSERT INTO Category VALUES (NULL, 'Lunch');
+      INSERT INTO Category VALUES (NULL, 'Appetisers');
+      INSERT INTO Category VALUES (NULL, 'Dinner');
+      INSERT INTO Category VALUES (NULL, 'Snack');
+      INSERT INTO Category VALUES (NULL, 'Soups');
+      INSERT INTO Category VALUES (NULL, 'Salads');
+      INSERT INTO Category VALUES (NULL, 'Sides');
+      INSERT INTO Category VALUES (NULL, 'Vegetarian');
+      INSERT INTO Category VALUES (NULL, 'Vegan');
+      INSERT INTO Category VALUES (NULL, 'Beef');
+      INSERT INTO Category VALUES (NULL, 'Chicken');
+      INSERT INTO Category VALUES (NULL, 'Poultry');
+      INSERT INTO Category VALUES (NULL, 'Pork');
+      INSERT INTO Category VALUES (NULL, 'Lamb');
+      INSERT INTO Category VALUES (NULL, 'Goat');
+      INSERT INTO Category VALUES (NULL, 'Fish');
+      INSERT INTO Category VALUES (NULL, 'Seafood');
+      INSERT INTO Category VALUES (NULL, 'Pasta');
+      INSERT INTO Category VALUES (NULL, 'Rice');
+      INSERT INTO Category VALUES (NULL, 'Noodles');
+      INSERT INTO Category VALUES (NULL, 'Casserole');
+      INSERT INTO Category VALUES (NULL, 'Barbeque');
+      INSERT INTO Category VALUES (NULL, 'Stir Fry');
+      INSERT INTO Category VALUES (NULL, 'Pizza');
+      INSERT INTO Category VALUES (NULL, 'Pie');
+      INSERT INTO Category VALUES (NULL, 'Burgers');
+      INSERT INTO Category VALUES (NULL, 'Sausages');
+      INSERT INTO Category VALUES (NULL, 'Mince');
+      INSERT INTO Category VALUES (NULL, 'Sauce');
+      INSERT INTO Category VALUES (NULL, 'Dips');
+      INSERT INTO Category VALUES (NULL, 'Condiments');
+      INSERT INTO Category VALUES (NULL, 'Bread');
+      INSERT INTO Category VALUES (NULL, 'Baking');
+      INSERT INTO Category VALUES (NULL, 'Muffins');
+      INSERT INTO Category VALUES (NULL, 'Cake');
+      INSERT INTO Category VALUES (NULL, 'Biscuits');
+      INSERT INTO Category VALUES (NULL, 'Sweets');
+      INSERT INTO Category VALUES (NULL, 'Desserts');
+      INSERT INTO Category VALUES (NULL, 'Ice Cream');
+      INSERT INTO Category VALUES (NULL, 'Drinks');
+      INSERT INTO Category VALUES (NULL, 'Sandwiches');
+      INSERT INTO Category VALUES (NULL, 'Wraps');
+      INSERT INTO Category VALUES (NULL, 'Miscellaneous');
+      INSERT INTO Measurements VALUES (NULL, 'g', 'gram', 'grams');
+      INSERT INTO Measurements VALUES (NULL, 'kg', 'kilogram', 'kilograms');
+      INSERT INTO Measurements VALUES (NULL, 'ml', 'milliliter', 'milliliters');
+      INSERT INTO Measurements VALUES (NULL, 'dl', 'deciliter', 'deciliters');
+      INSERT INTO Measurements VALUES (NULL, 'l', 'liter', 'liters');
+      INSERT INTO Measurements VALUES (NULL, 'tsp', 'teaspoon', 'teaspoons');
+      INSERT INTO Measurements VALUES (NULL, 'tbsp', 'tablespoon', 'tablespoons');
+      INSERT INTO Measurements VALUES (NULL, 'oz', 'ounce', 'ounces');
+      INSERT INTO Measurements VALUES (NULL, 'fl. oz', 'fluid ounce', 'fluid ounces');
+      INSERT INTO Measurements VALUES (NULL, 'c', 'cup', 'cups');
+      INSERT INTO Measurements VALUES (NULL, 'qt', 'quart', 'quatrs');
+      INSERT INTO Measurements VALUES (NULL, 'pt', 'pint', 'pints');
+      INSERT INTO Measurements VALUES (NULL, 'gal', 'gallon', 'gallons');
+      INSERT INTO Measurements VALUES (NULL, 'lb', 'pound', 'pounds');
+      INSERT INTO Measurements VALUES (NULL, 'piece', 'piece', 'pieces');
+      INSERT INTO Measurements VALUES (NULL, 'as required', 'as required', 'as required');
+      INSERT INTO Measurements VALUES (NULL, 'pinch','pinch', 'pinches');
+      INSERT INTO Measurements VALUES (NULL, 'dash','dash', 'dashes');
+      INSERT INTO Measurements VALUES (NULL, 'smidgen','smidgen', 'smidgens');
+      INSERT INTO Measurements VALUES (NULL, 'stick','stick', 'sticks');
+      INSERT INTO Measurements VALUES (NULL, '', '', '');
+      " | mysql $MYSQL_DATABASE
+    - >
+      echo "CREATE USER '$MYSQL_USER'@'%' IDENTIFIED BY '$MYSQL_PASSWORD'; GRANT ALL PRIVILEGES ON
+      $MYSQL_DATABASE.* TO '$MYSQL_USER'@'%'; FLUSH PRIVILEGES;" | mysql
+    - export MYSQL_HOST=127.0.0.1
+    - cd server
+    - touch test/config.ts
+    - npm test
+    - cd ../client
+    - npm test
