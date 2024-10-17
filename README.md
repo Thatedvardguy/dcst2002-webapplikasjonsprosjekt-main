@@ -1,3 +1,8 @@
+# Edit:
+Another university group project. 
+
+Disclaimer: Not all code written by me personally. 
+
 # Client tests example
 
 ## Setup database
